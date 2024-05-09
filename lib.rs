@@ -5,7 +5,7 @@ extern crate alloc;
 use polymesh_ink::*;
 
 #[ink::contract]
-mod nft_szn_24_trader {
+mod nft_trader {
   use alloc::collections::btree_set::BTreeSet;
   use alloc::{vec, vec::Vec};
   #[cfg(feature = "std")]
@@ -208,10 +208,10 @@ mod nft_szn_24_trader {
     }
   }
 
-  /// Nft trading contract for NFTSZN2024.
+  /// Contract to trade NFTs on Polymesh.
   #[ink(storage)]
   #[derive(Default)]
-  pub struct NftSzn24Trader {
+  pub struct NftTrader {
     /// The contracts state (deployed, initialized, Closed).
     state: ContractState,
     /// The [`AccountId`] that deployed the contract.  Used to close the contract.
@@ -230,16 +230,8 @@ mod nft_szn_24_trader {
     nfts: BTreeSet<CompactNftId>,
   }
 
-  impl NftSzn24Trader {
-    /// Create NFT SZN 2024 trader contract for `ticker` collection.
-    #[ink(constructor)]
-    pub fn default() -> Result<Self> {
-      Self::new(Ticker([
-        0x4e, 0x46, 0x54, 0x53, 0x5a, 0x4e, 0x32, 0x30, 0x32, 0x34, 0x00, 0x00,
-      ]))
-    }
-
-    /// Create NFT SZN 2024 trader contract for `ticker` collection.
+  impl NftTrader {
+    /// Create NFT trader contract for `ticker` collection.
     /// For testing.
     #[ink(constructor)]
     pub fn new(ticker: Ticker) -> Result<Self> {

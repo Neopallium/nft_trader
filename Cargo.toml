@@ -1,5 +1,5 @@
 [package]
-name = "nft_szn_24_trader"
+name = "nft_trader"
 version = "0.1.0"
 authors = ["Robert G. Jakabosky <rjakabosky@gmail.com>"]
 edition = "2021"

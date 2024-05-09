@@ -1,4 +1,4 @@
-A contract for trading `NFTSZN2024` NFTs on Polymesh.
+A contract for trading NFTs on Polymesh.
 
 Allows NFTs to be sold safely for POLYX.  The NFT transfer and POLYX transfer are done in
 a single atomic transaction to ensure the seller get their POLYX and the buyer gets the NFT.
