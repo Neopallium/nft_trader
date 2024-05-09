@@ -1,0 +1,27 @@
+[package]
+name = "nft_szn_24_trader"
+version = "0.1.0"
+authors = ["Robert G. Jakabosky <rjakabosky@gmail.com>"]
+edition = "2021"
+license = "Apache-2.0"
+
+[dependencies]
+ink = { version = "4.3", default-features = false }
+
+scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
+scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
+
+polymesh-ink = { version = "3.2.0", default-features = false, features = ["as-library"] }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "scale/std",
+    "scale-info/std",
+    "polymesh-ink/std",
+]
+ink-as-dependency = []
