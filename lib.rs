@@ -20,8 +20,6 @@ mod nft_szn_24_trader {
   pub enum Error {
     /// PolymeshInk errors.
     PolymeshInk(PolymeshError),
-    /// Scale decode failed.
-    ScaleError,
     /// Contract hasn't been initialized.
     NotInitialized,
     /// Contract has already been initialized.
@@ -63,6 +61,31 @@ mod nft_szn_24_trader {
   /// The contract result type.
   pub type Result<T> = core::result::Result<T, Error>;
 
+  /// A compact ID type for NFT ids.  To decrease contract storage usage.
+  #[derive(
+    Copy, Clone, Debug, Default, scale::Encode, scale::Decode, PartialEq, Eq, PartialOrd, Ord,
+  )]
+  #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+  pub struct CompactNftId(#[codec(compact)] pub u64);
+
+  impl CompactNftId {
+    pub fn nft(self) -> NFTId {
+      NFTId(self.0)
+    }
+  }
+
+  impl From<&NFTId> for CompactNftId {
+    fn from(id: &NFTId) -> Self {
+      Self(id.0.into())
+    }
+  }
+
+  impl From<NFTId> for CompactNftId {
+    fn from(id: NFTId) -> Self {
+      Self(id.0.into())
+    }
+  }
+
   /// Event emitted when a portfolio is added to the contract.
   #[ink(event)]
   pub struct PortfolioAdded {
@@ -82,7 +105,7 @@ mod nft_szn_24_trader {
   pub struct WithdrawnNFTs {
     #[ink(topic)]
     portfolio: PortfolioId,
-    nfts: Vec<NFTId>,
+    nfts: Vec<CompactNftId>,
   }
 
   /// Event emitted when NFTs are set for sale.
@@ -90,7 +113,7 @@ mod nft_szn_24_trader {
   pub struct NFTsForSale {
     #[ink(topic)]
     portfolio: PortfolioId,
-    nfts: Vec<(NFTId, Balance)>,
+    nfts: Vec<(CompactNftId, Balance)>,
   }
 
   /// Event emitted when NFT has been sold.
@@ -98,8 +121,19 @@ mod nft_szn_24_trader {
   pub struct NFTSold {
     #[ink(topic)]
     portfolio: PortfolioId,
-    nft: NFTId,
+    nft: CompactNftId,
     amount: Balance,
+  }
+
+  /// NFT details.
+  #[derive(Debug, scale::Encode, scale::Decode, PartialEq, Eq)]
+  #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
+  pub struct NftDetails {
+    /// The NFT Id.
+    pub id: CompactNftId,
+    /// The NFT price.
+    pub price: Balance,
+    // TODO: include metadata.
   }
 
   /// NFT sale details.
@@ -121,12 +155,12 @@ mod nft_szn_24_trader {
     /// The caller's portfolio id holding the NFTs to be sold.
     pub id: PortfolioId,
     /// NFTs for sale in this portfolio.
-    pub nfts: BTreeSet<u64>,
+    pub nfts: BTreeSet<CompactNftId>,
   }
 
   impl NftPortfolioDetails {
-    pub fn remove_nft(&mut self, nft: NFTId) -> Result<()> {
-      if self.nfts.remove(&nft.0) {
+    pub fn remove_nft(&mut self, nft: CompactNftId) -> Result<()> {
+      if self.nfts.remove(&nft) {
         Ok(())
       } else {
         Err(Error::NotInPortfolio)
@@ -153,6 +187,9 @@ mod nft_szn_24_trader {
     pub fn ensure_ready(&self) -> Result<()> {
       match self {
         Self::Initialized => Ok(()),
+        Self::Closed => {
+          return Err(Error::ContractClosed);
+        }
         _ => {
           return Err(Error::NotInitialized);
         }
@@ -188,7 +225,9 @@ mod nft_szn_24_trader {
     /// Custodial portfolios holding NFTS for sell.
     portfolios: Mapping<IdentityId, NftPortfolioDetails>,
     /// NFTs for sale.
-    nft_sales: Mapping<NFTId, NftSaleDetails>,
+    nft_sales: Mapping<CompactNftId, NftSaleDetails>,
+    /// The ids of all NFTs for sale.  Used to list details of NFTs.
+    nfts: BTreeSet<CompactNftId>,
   }
 
   impl NftSzn24Trader {
@@ -219,11 +258,13 @@ mod nft_szn_24_trader {
     }
 
     /// Ensure the caller doesn't have a portfolio already setup.
-    fn ensure_no_portfolio(&self, did: IdentityId) -> Result<()> {
-      if self.portfolios.get(did).is_some() {
+    fn ensure_no_portfolio(&self) -> Result<IdentityId> {
+      // Get the caller's identity.
+      let caller_did = PolymeshInk::get_caller_did()?;
+      if self.portfolios.get(caller_did).is_some() {
         return Err(Error::AlreadyHavePortfolio);
       }
-      Ok(())
+      Ok(caller_did)
     }
 
     /// Ensure the caller is the contract's admin.
@@ -239,11 +280,11 @@ mod nft_szn_24_trader {
     fn ensure_nft_in_portfolio(
       &self,
       portfolio: PortfolioId,
-      ids: impl IntoIterator<Item = NFTId>,
+      ids: impl IntoIterator<Item = CompactNftId>,
     ) -> Result<()> {
       for id in ids {
         let api = Api::new();
-        let nft_portfolio = api.query().nft().nft_owner(self.ticker, id)?;
+        let nft_portfolio = api.query().nft().nft_owner(self.ticker, id.nft())?;
         if nft_portfolio != Some(portfolio) {
           return Err(Error::NotInPortfolio);
         }
@@ -289,16 +330,22 @@ mod nft_szn_24_trader {
       Ok(self.did)
     }
 
+    // Remove NFTs remove from sale.
+    fn remove_nft(&mut self, nft: &CompactNftId) {
+      self.nft_sales.remove(nft);
+      self.nfts.remove(nft);
+    }
+
     // Remove NFTs from a portfolio and remove it from sale.
-    fn remove_nfts<'a>(
+    fn remove_portfolio_nfts<'a>(
       &mut self,
       mut portfolio: NftPortfolioDetails,
-      nfts: impl IntoIterator<Item = &'a NFTId>,
+      nfts: impl IntoIterator<Item = &'a CompactNftId>,
     ) -> Result<PortfolioId> {
       let did = portfolio.id.did;
       for nft in nfts {
         portfolio.remove_nft(*nft)?;
-        self.nft_sales.remove(nft);
+        self.remove_nft(nft);
       }
       // Update the portfolio details.
       self.portfolios.insert(did, &portfolio);
@@ -314,8 +361,7 @@ mod nft_szn_24_trader {
       self.state.ensure_ready()?;
 
       // Ensure the caller doesn't have a portfolio.
-      let caller_did = PolymeshInk::get_caller_did()?;
-      self.ensure_no_portfolio(caller_did)?;
+      let caller_did = self.ensure_no_portfolio()?;
 
       let api = PolymeshInk::new()?;
       let portfolio_id = api.create_custody_portfolio(caller_did, portfolio_name)?;
@@ -345,14 +391,16 @@ mod nft_szn_24_trader {
     pub fn add_portfolio(&mut self, auth_id: u64, portfolio: PortfolioNumber) -> Result<()> {
       self.state.ensure_ready()?;
 
+      // Ensure the caller doesn't have a portfolio.
+      let caller_did = self.ensure_no_portfolio()?;
+
       let api = PolymeshInk::new()?;
       // Accept portfolio custody and ensure we have custody.
       let kind = PortfolioKind::User(portfolio);
       let portfolio_id = api.accept_portfolio_custody(auth_id, kind)?;
-      let caller_did = portfolio_id.did;
-
-      // Ensure the caller doesn't have a portfolio.
-      self.ensure_no_portfolio(caller_did)?;
+      if caller_did != portfolio_id.did {
+        return Err(Error::InvalidPortfolioAuthorization);
+      }
 
       // Save the caller's portfolio.
       self.portfolios.insert(
@@ -386,8 +434,8 @@ mod nft_szn_24_trader {
       // Remove the portfolio.
       self.portfolios.remove(caller_did);
       // Remove the NFTs sale details.
-      for id in portfolio.nfts {
-        self.nft_sales.remove(NFTId(id));
+      for nft in portfolio.nfts {
+        self.remove_nft(&nft);
       }
 
       Self::env().emit_event(PortfolioRemoved {
@@ -399,13 +447,13 @@ mod nft_szn_24_trader {
 
     #[ink(message)]
     /// Allow the caller to withdrawal NFTs from the contract controlled portfolio.
-    pub fn withdraw(&mut self, ids: Vec<NFTId>, dest: PortfolioKind) -> Result<()> {
+    pub fn withdraw(&mut self, ids: Vec<CompactNftId>, dest: PortfolioKind) -> Result<()> {
       self.state.ensure_withdraw()?;
 
       // Ensure the caller has a portfolio.
       let caller_portfolio = self.ensure_has_portfolio()?;
       // Remove the NFTs from the caller's portfolio.
-      let caller_portfolio = self.remove_nfts(caller_portfolio, &ids)?;
+      let caller_portfolio = self.remove_portfolio_nfts(caller_portfolio, &ids)?;
 
       let caller_did = caller_portfolio.did;
       let dest = PortfolioId {
@@ -421,7 +469,7 @@ mod nft_szn_24_trader {
         vec![Fund {
           description: FundDescription::NonFungible(NFTs {
             ticker: self.ticker,
-            ids: ids.clone(),
+            ids: ids.iter().map(|id| id.nft()).collect(),
           }),
           memo: None,
         }],
@@ -441,7 +489,7 @@ mod nft_szn_24_trader {
     /// Befor trying to call this method make sure you have done the following:
     ///   * Setup a portfolio with the contract.
     ///   * Make sure the NFTs are in that portfolio.
-    pub fn nft_for_sell(&mut self, nfts: Vec<(NFTId, Balance)>) -> Result<()> {
+    pub fn nft_for_sell(&mut self, nfts: Vec<(CompactNftId, Balance)>) -> Result<()> {
       self.state.ensure_ready()?;
 
       // Ensure the caller has a portfolio.
@@ -453,7 +501,7 @@ mod nft_szn_24_trader {
 
       // Add the NFTs into the caller's portfolio details.
       for (id, _) in &nfts {
-        caller_portfolio.nfts.insert(id.0);
+        caller_portfolio.nfts.insert(*id);
       }
       // Update the seller's portfolio details.
       self.portfolios.insert(caller_did, &caller_portfolio);
@@ -468,6 +516,7 @@ mod nft_szn_24_trader {
             price: *price,
           },
         );
+        self.nfts.insert(*id);
       }
 
       Self::env().emit_event(NFTsForSale {
@@ -478,7 +527,12 @@ mod nft_szn_24_trader {
       Ok(())
     }
 
-    fn transfer_nft(&self, sender: PortfolioId, receiver: PortfolioId, id: NFTId) -> Result<()> {
+    fn transfer_nft(
+      &self,
+      sender: PortfolioId,
+      receiver: PortfolioId,
+      id: CompactNftId,
+    ) -> Result<()> {
       let api = PolymeshInk::new()?;
       api.settlement_execute(
         self.venue,
@@ -487,7 +541,7 @@ mod nft_szn_24_trader {
           receiver,
           nfts: NFTs {
             ticker: self.ticker,
-            ids: vec![id],
+            ids: vec![id.nft()],
           },
         }],
         vec![sender, receiver],
@@ -500,11 +554,12 @@ mod nft_szn_24_trader {
     ///
     /// Befor trying to call this method make sure you have done the following:
     ///   * Setup a portfolio with the contract.
-    pub fn buy_nft(&mut self, nft: NFTId) -> Result<()> {
+    pub fn buy_nft(&mut self, nft: CompactNftId) -> Result<()> {
       self.state.ensure_ready()?;
 
       // Check if the NFT is for sale.
       let sale = self.nft_sales.take(nft).ok_or(Error::NotForSale)?;
+      self.nfts.remove(&nft);
 
       // Get the seller's portfolio.
       let seller_portfolio = self
@@ -522,7 +577,7 @@ mod nft_szn_24_trader {
       let caller_portfolio = self.ensure_has_portfolio()?.id;
 
       // Remove the NFT from the seller's portfolio.
-      let seller_portfolio = self.remove_nfts(seller_portfolio, &[nft])?;
+      let seller_portfolio = self.remove_portfolio_nfts(seller_portfolio, &[nft])?;
 
       // Transfer the NFT to the buyer.
       self.transfer_nft(seller_portfolio, caller_portfolio, nft)?;
@@ -539,6 +594,21 @@ mod nft_szn_24_trader {
       });
 
       Ok(())
+    }
+
+    #[ink(message)]
+    /// Show NFT available to buy.
+    pub fn show_available_nfts(&self) -> Result<Vec<NftDetails>> {
+      let mut available = Vec::new();
+      for nft in &self.nfts {
+        if let Some(sale) = self.nft_sales.get(nft) {
+          available.push(NftDetails {
+            id: *nft,
+            price: sale.price,
+          })
+        }
+      }
+      Ok(available)
     }
   }
 }
