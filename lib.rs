@@ -6,11 +6,11 @@ use polymesh_ink::*;
 
 #[ink::contract]
 mod nft_szn_24_trader {
-  use alloc::{vec, vec::Vec};
   use alloc::collections::btree_set::BTreeSet;
-  use ink::storage::Mapping;
+  use alloc::{vec, vec::Vec};
   #[cfg(feature = "std")]
   use ink::storage::traits::StorageLayout;
+  use ink::storage::Mapping;
 
   use crate::*;
 
@@ -290,7 +290,11 @@ mod nft_szn_24_trader {
     }
 
     // Remove NFTs from a portfolio and remove it from sale.
-    fn remove_nfts<'a>(&mut self, mut portfolio: NftPortfolioDetails, nfts: impl IntoIterator<Item = &'a NFTId>) -> Result<PortfolioId> {
+    fn remove_nfts<'a>(
+      &mut self,
+      mut portfolio: NftPortfolioDetails,
+      nfts: impl IntoIterator<Item = &'a NFTId>,
+    ) -> Result<PortfolioId> {
       let did = portfolio.id.did;
       for nft in nfts {
         portfolio.remove_nft(*nft)?;
@@ -301,21 +305,63 @@ mod nft_szn_24_trader {
       Ok(portfolio.id)
     }
 
+    /// Creates a portoflio controlled by the contract for the caller.
+    ///
+    /// Sellers should move the NFTs they want to sell into this portfolio.
+    /// Buyers will receiver the NFTs into this portfolio when they buy an NFT.
     #[ink(message)]
-    /// Accept custody of a portfolio and give the caller some tokens.
-    pub fn add_portfolio(&mut self, auth_id: u64, portfolio: PortfolioKind) -> Result<()> {
+    pub fn create_portfolio(&mut self, portfolio_name: PortfolioName) -> Result<()> {
       self.state.ensure_ready()?;
+
+      // Ensure the caller doesn't have a portfolio.
+      let caller_did = PolymeshInk::get_caller_did()?;
+      self.ensure_no_portfolio(caller_did)?;
+
+      let api = PolymeshInk::new()?;
+      let portfolio_id = api.create_custody_portfolio(caller_did, portfolio_name)?;
+
+      // Save the caller's portfolio.
+      self.portfolios.insert(
+        caller_did,
+        &NftPortfolioDetails {
+          id: portfolio_id,
+          nfts: Default::default(),
+        },
+      );
+
+      Self::env().emit_event(PortfolioAdded {
+        portfolio: portfolio_id,
+      });
+
+      Ok(())
+    }
+
+    #[ink(message)]
+    /// Accept custody of a portfolio.  Use this if you have already created a
+    /// portfolio to hold the NFTs.
+    ///
+    /// Can't be used with the `Default` portfolio.  This is to prevent the user
+    /// from locking themselves out of their `Default` portfolio.
+    pub fn add_portfolio(&mut self, auth_id: u64, portfolio: PortfolioNumber) -> Result<()> {
+      self.state.ensure_ready()?;
+
       let api = PolymeshInk::new()?;
       // Accept portfolio custody and ensure we have custody.
-      let portfolio_id = api.accept_portfolio_custody(auth_id, portfolio)?;
+      let kind = PortfolioKind::User(portfolio);
+      let portfolio_id = api.accept_portfolio_custody(auth_id, kind)?;
       let caller_did = portfolio_id.did;
+
       // Ensure the caller doesn't have a portfolio.
       self.ensure_no_portfolio(caller_did)?;
+
       // Save the caller's portfolio.
-      self.portfolios.insert(caller_did, &NftPortfolioDetails {
-        id: portfolio_id,
-        nfts: Default::default(),
-      });
+      self.portfolios.insert(
+        caller_did,
+        &NftPortfolioDetails {
+          id: portfolio_id,
+          nfts: Default::default(),
+        },
+      );
 
       Self::env().emit_event(PortfolioAdded {
         portfolio: portfolio_id,
@@ -432,12 +478,7 @@ mod nft_szn_24_trader {
       Ok(())
     }
 
-    fn transfer_nft(
-      &self,
-      sender: PortfolioId,
-      receiver: PortfolioId,
-      id: NFTId,
-    ) -> Result<()> {
+    fn transfer_nft(&self, sender: PortfolioId, receiver: PortfolioId, id: NFTId) -> Result<()> {
       let api = PolymeshInk::new()?;
       api.settlement_execute(
         self.venue,
@@ -447,7 +488,7 @@ mod nft_szn_24_trader {
           nfts: NFTs {
             ticker: self.ticker,
             ids: vec![id],
-          }
+          },
         }],
         vec![sender, receiver],
       )?;
@@ -466,7 +507,10 @@ mod nft_szn_24_trader {
       let sale = self.nft_sales.take(nft).ok_or(Error::NotForSale)?;
 
       // Get the seller's portfolio.
-      let seller_portfolio = self.portfolios.get(sale.did).ok_or(Error::MissingPortfolio)?;
+      let seller_portfolio = self
+        .portfolios
+        .get(sale.did)
+        .ok_or(Error::MissingPortfolio)?;
 
       // Ensure the caller has paid the required amount.
       let amount = Self::env().transferred_value();
