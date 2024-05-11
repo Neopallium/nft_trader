@@ -1,0 +1,2692 @@
+{
+  "source": {
+    "hash": "0xa0aebb931bc593eda50ee4f189bf144c69a6bef49f7f11ed3fa5b65ebdce03b8",
+    "language": "ink! 4.3.0",
+    "compiler": "rustc 1.77.1",
+    "build_info": {
+      "build_mode": "Release",
+      "cargo_contract_version": "3.2.0",
+      "rust_toolchain": "stable-x86_64-unknown-linux-gnu",
+      "wasm_opt_settings": {
+        "keep_debug_symbols": false,
+        "optimization_passes": "Z"
+      }
+    }
+  },
+  "contract": {
+    "name": "nft_trader",
+    "version": "0.1.0",
+    "authors": [
+      "Robert G. Jakabosky <rjakabosky@gmail.com>"
+    ],
+    "license": "Apache-2.0"
+  },
+  "spec": {
+    "constructors": [
+      {
+        "args": [
+          {
+            "label": "ticker",
+            "type": {
+              "displayName": [
+                "Ticker"
+              ],
+              "type": 8
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          "Create NFT trader contract for `ticker` collection.",
+          "For testing."
+        ],
+        "label": "new",
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink_primitives",
+            "ConstructorResult"
+          ],
+          "type": 10
+        },
+        "selector": "0x9bae9d5e"
+      }
+    ],
+    "docs": [],
+    "environment": {
+      "accountId": {
+        "displayName": [
+          "AccountId"
+        ],
+        "type": 0
+      },
+      "balance": {
+        "displayName": [
+          "Balance"
+        ],
+        "type": 7
+      },
+      "blockNumber": {
+        "displayName": [
+          "BlockNumber"
+        ],
+        "type": 17
+      },
+      "chainExtension": {
+        "displayName": [
+          "ChainExtension"
+        ],
+        "type": 59
+      },
+      "hash": {
+        "displayName": [
+          "Hash"
+        ],
+        "type": 58
+      },
+      "maxEventTopics": 4,
+      "timestamp": {
+        "displayName": [
+          "Timestamp"
+        ],
+        "type": 3
+      }
+    },
+    "events": [
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "portfolio",
+            "type": {
+              "displayName": [
+                "PortfolioId"
+              ],
+              "type": 47
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when a portfolio is added to the contract."
+        ],
+        "label": "PortfolioAdded"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "portfolio",
+            "type": {
+              "displayName": [
+                "PortfolioId"
+              ],
+              "type": 47
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when a portfolio is removed from the contract."
+        ],
+        "label": "PortfolioRemoved"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "portfolio",
+            "type": {
+              "displayName": [
+                "PortfolioId"
+              ],
+              "type": 47
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "nfts",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when NFTs are withdrawn from a portfolio."
+        ],
+        "label": "WithdrawnNFTs"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "portfolio",
+            "type": {
+              "displayName": [
+                "PortfolioId"
+              ],
+              "type": 47
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "nfts",
+            "type": {
+              "displayName": [
+                "BTreeMap"
+              ],
+              "type": 26
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when NFTs for sale prices is updated."
+        ],
+        "label": "NFTsForSale"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "portfolio",
+            "type": {
+              "displayName": [
+                "PortfolioId"
+              ],
+              "type": 47
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "id",
+            "type": {
+              "displayName": [
+                "NftId"
+              ],
+              "type": 5
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "amount",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 7
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when NFT has been sold."
+        ],
+        "label": "NFTSold"
+      }
+    ],
+    "lang_error": {
+      "displayName": [
+        "ink",
+        "LangError"
+      ],
+      "type": 21
+    },
+    "messages": [
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Called after deploying the contract to create the Venue."
+        ],
+        "label": "init",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0x44d6441f"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " The contract `admin` can close the contract.",
+          " A closed contract will not allow any more trading, but will still allow",
+          " users to withdraw the NFTs or portfolios."
+        ],
+        "label": "close",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0x3c922166"
+      },
+      {
+        "args": [
+          {
+            "label": "portfolio_name",
+            "type": {
+              "displayName": [
+                "PortfolioName"
+              ],
+              "type": 22
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Creates a portoflio controlled by the contract for the caller.",
+          "",
+          " Sellers should move the NFTs they want to sell into this portfolio.",
+          " Buyers will receiver the NFTs into this portfolio when they buy an NFT."
+        ],
+        "label": "create_portfolio",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0xeac8f033"
+      },
+      {
+        "args": [
+          {
+            "label": "auth_id",
+            "type": {
+              "displayName": [
+                "u64"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "label": "portfolio",
+            "type": {
+              "displayName": [
+                "PortfolioNumber"
+              ],
+              "type": 24
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Accept custody of a portfolio.  Use this if you have already created a",
+          " portfolio to hold the NFTs.",
+          "",
+          " Can't be used with the `Default` portfolio.  This is to prevent the user",
+          " from locking themselves out of their `Default` portfolio."
+        ],
+        "label": "add_portfolio",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0xaca118f1"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Return the caller's portfolio custodianship back to them."
+        ],
+        "label": "remove_portfolio",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0xe6ba3414"
+      },
+      {
+        "args": [
+          {
+            "label": "ids",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "label": "dest",
+            "type": {
+              "displayName": [
+                "PortfolioKind"
+              ],
+              "type": 25
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Allow the caller to withdrawal NFTs from the contract controlled portfolio."
+        ],
+        "label": "withdraw",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0x410fcc9d"
+      },
+      {
+        "args": [
+          {
+            "label": "nfts",
+            "type": {
+              "displayName": [
+                "BTreeMap"
+              ],
+              "type": 26
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Mark NFTs for sale.",
+          "",
+          " Befor trying to call this method make sure you have done the following:",
+          "   * Setup a portfolio with the contract.",
+          "   * Make sure the NFTs are in that portfolio."
+        ],
+        "label": "nft_for_sell",
+        "mutates": true,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0x4885671e"
+      },
+      {
+        "args": [
+          {
+            "label": "nft",
+            "type": {
+              "displayName": [
+                "NftId"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Buy an NFT by paying the sale price.",
+          "",
+          " Befor trying to call this method make sure you have done the following:",
+          "   * Setup a portfolio with the contract."
+        ],
+        "label": "buy_nft",
+        "mutates": true,
+        "payable": true,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 10
+        },
+        "selector": "0x49505a05"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Contract Venue Id."
+        ],
+        "label": "venue",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 30
+        },
+        "selector": "0x20ab6bb4"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Contract Identity."
+        ],
+        "label": "contract_did",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 33
+        },
+        "selector": "0x77092388"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " NFT collection ticker."
+        ],
+        "label": "ticker",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 36
+        },
+        "selector": "0x9be264ba"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Contract admin."
+        ],
+        "label": "admin",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 38
+        },
+        "selector": "0x1aa66b39"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Is the contract still open."
+        ],
+        "label": "is_open",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 41
+        },
+        "selector": "0x74bc5249"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Returns the caller's protfolio.  Use this to check if the caller",
+          " needs to add/create a portfolio."
+        ],
+        "label": "have_portfolio",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 44
+        },
+        "selector": "0x5129d998"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Get all NFT IDs."
+        ],
+        "label": "nfts",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 48
+        },
+        "selector": "0x756765bc"
+      },
+      {
+        "args": [
+          {
+            "label": "nft",
+            "type": {
+              "displayName": [
+                "NftId"
+              ],
+              "type": 5
+            }
+          }
+        ],
+        "default": false,
+        "docs": [
+          " Get an NFT sale details if it is for sale."
+        ],
+        "label": "nft_sale_details",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 50
+        },
+        "selector": "0xd193a306"
+      },
+      {
+        "args": [],
+        "default": false,
+        "docs": [
+          " Get all NFT prices."
+        ],
+        "label": "nft_prices",
+        "mutates": false,
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "ink",
+            "MessageResult"
+          ],
+          "type": 54
+        },
+        "selector": "0x6c0d8efb"
+      }
+    ]
+  },
+  "storage": {
+    "root": {
+      "layout": {
+        "struct": {
+          "fields": [
+            {
+              "layout": {
+                "enum": {
+                  "dispatchKey": "0x00000000",
+                  "name": "ContractState",
+                  "variants": {
+                    "0": {
+                      "fields": [],
+                      "name": "Deployed"
+                    },
+                    "1": {
+                      "fields": [],
+                      "name": "Initialized"
+                    },
+                    "2": {
+                      "fields": [],
+                      "name": "Closed"
+                    }
+                  }
+                }
+              },
+              "name": "state"
+            },
+            {
+              "layout": {
+                "enum": {
+                  "dispatchKey": "0x00000000",
+                  "name": "Option",
+                  "variants": {
+                    "0": {
+                      "fields": [],
+                      "name": "None"
+                    },
+                    "1": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 0
+                            }
+                          },
+                          "name": "0"
+                        }
+                      ],
+                      "name": "Some"
+                    }
+                  }
+                }
+              },
+              "name": "admin"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "array": {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 2
+                            }
+                          },
+                          "len": 12,
+                          "offset": "0x00000000"
+                        }
+                      },
+                      "name": "0"
+                    }
+                  ],
+                  "name": "Ticker"
+                }
+              },
+              "name": "ticker"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "leaf": {
+                          "key": "0x00000000",
+                          "ty": 3
+                        }
+                      },
+                      "name": "0"
+                    }
+                  ],
+                  "name": "VenueId"
+                }
+              },
+              "name": "venue"
+            },
+            {
+              "layout": {
+                "struct": {
+                  "fields": [
+                    {
+                      "layout": {
+                        "array": {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x00000000",
+                              "ty": 2
+                            }
+                          },
+                          "len": 32,
+                          "offset": "0x00000000"
+                        }
+                      },
+                      "name": "0"
+                    }
+                  ],
+                  "name": "IdentityId"
+                }
+              },
+              "name": "did"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "struct": {
+                                      "fields": [
+                                        {
+                                          "layout": {
+                                            "array": {
+                                              "layout": {
+                                                "leaf": {
+                                                  "key": "0x1198e956",
+                                                  "ty": 2
+                                                }
+                                              },
+                                              "len": 32,
+                                              "offset": "0x1198e956"
+                                            }
+                                          },
+                                          "name": "0"
+                                        }
+                                      ],
+                                      "name": "IdentityId"
+                                    }
+                                  },
+                                  "name": "did"
+                                },
+                                {
+                                  "layout": {
+                                    "enum": {
+                                      "dispatchKey": "0x1198e956",
+                                      "name": "PortfolioKind",
+                                      "variants": {
+                                        "0": {
+                                          "fields": [],
+                                          "name": "Default"
+                                        },
+                                        "1": {
+                                          "fields": [
+                                            {
+                                              "layout": {
+                                                "struct": {
+                                                  "fields": [
+                                                    {
+                                                      "layout": {
+                                                        "leaf": {
+                                                          "key": "0x1198e956",
+                                                          "ty": 3
+                                                        }
+                                                      },
+                                                      "name": "0"
+                                                    }
+                                                  ],
+                                                  "name": "PortfolioNumber"
+                                                }
+                                              },
+                                              "name": "0"
+                                            }
+                                          ],
+                                          "name": "User"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "name": "kind"
+                                }
+                              ],
+                              "name": "PortfolioId"
+                            }
+                          },
+                          "name": "id"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x1198e956",
+                              "ty": 4
+                            }
+                          },
+                          "name": "nfts"
+                        }
+                      ],
+                      "name": "NftPortfolioDetails"
+                    }
+                  },
+                  "root_key": "0x1198e956"
+                }
+              },
+              "name": "portfolios"
+            },
+            {
+              "layout": {
+                "root": {
+                  "layout": {
+                    "struct": {
+                      "fields": [
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x2a5bf8af",
+                              "ty": 0
+                            }
+                          },
+                          "name": "account"
+                        },
+                        {
+                          "layout": {
+                            "struct": {
+                              "fields": [
+                                {
+                                  "layout": {
+                                    "array": {
+                                      "layout": {
+                                        "leaf": {
+                                          "key": "0x2a5bf8af",
+                                          "ty": 2
+                                        }
+                                      },
+                                      "len": 32,
+                                      "offset": "0x2a5bf8af"
+                                    }
+                                  },
+                                  "name": "0"
+                                }
+                              ],
+                              "name": "IdentityId"
+                            }
+                          },
+                          "name": "did"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x2a5bf8af",
+                              "ty": 7
+                            }
+                          },
+                          "name": "price"
+                        }
+                      ],
+                      "name": "NftSaleDetails"
+                    }
+                  },
+                  "root_key": "0x2a5bf8af"
+                }
+              },
+              "name": "nft_sales"
+            },
+            {
+              "layout": {
+                "leaf": {
+                  "key": "0x00000000",
+                  "ty": 4
+                }
+              },
+              "name": "nfts"
+            }
+          ],
+          "name": "NftTrader"
+        }
+      },
+      "root_key": "0x00000000"
+    }
+  },
+  "types": [
+    {
+      "id": 0,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 1,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "AccountId"
+        ]
+      }
+    },
+    {
+      "id": 1,
+      "type": {
+        "def": {
+          "array": {
+            "len": 32,
+            "type": 2
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": {
+        "def": {
+          "primitive": "u8"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": {
+        "def": {
+          "primitive": "u64"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 6
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 5
+          }
+        ],
+        "path": [
+          "BTreeSet"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 3,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "nft_trader",
+          "nft_trader",
+          "NftId"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": {
+        "def": {
+          "primitive": "u128"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 9,
+                "typeName": "[u8; 12usize]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api",
+          "polymesh",
+          "types",
+          "polymesh_primitives",
+          "ticker",
+          "Ticker"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "type": {
+        "def": {
+          "array": {
+            "len": 12,
+            "type": 2
+          }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 11
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 11
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 12
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 12
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": {
+        "def": {
+          "tuple": []
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 14,
+                    "typeName": "PolymeshError"
+                  }
+                ],
+                "index": 0,
+                "name": "PolymeshInk"
+              },
+              {
+                "index": 1,
+                "name": "NotInitialized"
+              },
+              {
+                "index": 2,
+                "name": "AlreadyInitialized"
+              },
+              {
+                "index": 3,
+                "name": "ContractClosed"
+              },
+              {
+                "index": 4,
+                "name": "InvalidPortfolioAuthorization"
+              },
+              {
+                "index": 5,
+                "name": "AlreadyHavePortfolio"
+              },
+              {
+                "index": 6,
+                "name": "NoPortfolio"
+              },
+              {
+                "index": 7,
+                "name": "MissingPortfolio"
+              },
+              {
+                "index": 8,
+                "name": "NotInPortfolio"
+              },
+              {
+                "index": 9,
+                "name": "NotForSale"
+              },
+              {
+                "index": 10,
+                "name": "TransferredValueTooLow"
+              },
+              {
+                "index": 11,
+                "name": "FailedToPaySeller"
+              },
+              {
+                "index": 12,
+                "name": "NotAdmin"
+              }
+            ]
+          }
+        },
+        "path": [
+          "nft_trader",
+          "nft_trader",
+          "NftTraderError"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 15,
+                    "typeName": "PolymeshInkError"
+                  }
+                ],
+                "index": 0,
+                "name": "PolymeshRuntime"
+              },
+              {
+                "index": 1,
+                "name": "MissingIdentity"
+              },
+              {
+                "index": 2,
+                "name": "InvalidPortfolioAuthorization"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "selector",
+                    "type": 18,
+                    "typeName": "[u8; 4]"
+                  },
+                  {
+                    "name": "err",
+                    "type": 19,
+                    "typeName": "Option<InkEnvError>"
+                  }
+                ],
+                "index": 3,
+                "name": "InkDelegateCallError"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_ink",
+          "PolymeshError"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 16,
+                    "typeName": "String"
+                  }
+                ],
+                "index": 0,
+                "name": "ParityScaleCodec"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "status_code",
+                    "type": 17,
+                    "typeName": "u32"
+                  }
+                ],
+                "index": 1,
+                "name": "Generic"
+              },
+              {
+                "fields": [
+                  {
+                    "name": "error_msg",
+                    "type": 16,
+                    "typeName": "String"
+                  }
+                ],
+                "index": 2,
+                "name": "ExtrinsicCallFailed"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api_ink",
+          "error",
+          "Error"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "type": {
+        "def": {
+          "primitive": "str"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": {
+        "def": {
+          "primitive": "u32"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": {
+        "def": {
+          "array": {
+            "len": 4,
+            "type": 2
+          }
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 20
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 20
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "ScaleDecodeError"
+              },
+              {
+                "index": 1,
+                "name": "CalleeTrapped"
+              },
+              {
+                "index": 2,
+                "name": "CalleeReverted"
+              },
+              {
+                "index": 3,
+                "name": "KeyNotFound"
+              },
+              {
+                "index": 4,
+                "name": "TransferFailed"
+              },
+              {
+                "index": 5,
+                "name": "_EndowmentTooLow"
+              },
+              {
+                "index": 6,
+                "name": "CodeNotFound"
+              },
+              {
+                "index": 7,
+                "name": "NotCallable"
+              },
+              {
+                "index": 8,
+                "name": "LoggingDisabled"
+              },
+              {
+                "index": 9,
+                "name": "EcdsaRecoveryFailed"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_ink",
+          "InkEnvError"
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 1,
+                "name": "CouldNotReadInput"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "LangError"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 23,
+                "typeName": "::alloc::vec::Vec<u8>"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api",
+          "polymesh",
+          "types",
+          "polymesh_primitives",
+          "identity_id",
+          "PortfolioName"
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 2
+          }
+        }
+      }
+    },
+    {
+      "id": 24,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 3,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api",
+          "polymesh",
+          "types",
+          "polymesh_primitives",
+          "identity_id",
+          "PortfolioNumber"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "Default"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 24,
+                    "typeName": "polymesh_primitives::identity_id::PortfolioNumber"
+                  }
+                ],
+                "index": 1,
+                "name": "User"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api",
+          "polymesh",
+          "types",
+          "polymesh_primitives",
+          "identity_id",
+          "PortfolioKind"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 28
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "K",
+            "type": 5
+          },
+          {
+            "name": "V",
+            "type": 27
+          }
+        ],
+        "path": [
+          "BTreeMap"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 7
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 7
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 29
+          }
+        }
+      }
+    },
+    {
+      "id": 29,
+      "type": {
+        "def": {
+          "tuple": [
+            5,
+            27
+          ]
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 31
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 31
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 32
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 32
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 3,
+                "typeName": "u64"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api",
+          "polymesh",
+          "types",
+          "polymesh_primitives",
+          "settlement",
+          "VenueId"
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 34
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 34
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 35
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 35
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 1,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api_ink",
+          "basic_types",
+          "IdentityId"
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 37
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 37
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 37,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 8
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 8
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 38,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 39
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 39
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 39,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 40
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 40
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 40,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 0
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 41,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 42
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 42
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 42,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 43
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 43
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "type": {
+        "def": {
+          "primitive": "bool"
+        }
+      }
+    },
+    {
+      "id": 44,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 45
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 45
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 46
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 46
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 47
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 47
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 47,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "did",
+                "type": 35,
+                "typeName": "::polymesh_api_ink::IdentityId"
+              },
+              {
+                "name": "kind",
+                "type": 25,
+                "typeName": "polymesh_primitives::identity_id::PortfolioKind"
+              }
+            ]
+          }
+        },
+        "path": [
+          "polymesh_api",
+          "polymesh",
+          "types",
+          "polymesh_primitives",
+          "identity_id",
+          "PortfolioId"
+        ]
+      }
+    },
+    {
+      "id": 48,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 49
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 49
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 49,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 4
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 4
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 51
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 51
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 52
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 52
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 52,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "index": 0,
+                "name": "None"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 53
+                  }
+                ],
+                "index": 1,
+                "name": "Some"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 53
+          }
+        ],
+        "path": [
+          "Option"
+        ]
+      }
+    },
+    {
+      "id": 53,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "account",
+                "type": 0,
+                "typeName": "AccountId"
+              },
+              {
+                "name": "did",
+                "type": 35,
+                "typeName": "IdentityId"
+              },
+              {
+                "name": "price",
+                "type": 7,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "nft_trader",
+          "nft_trader",
+          "NftSaleDetails"
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 55
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 21
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 55
+          },
+          {
+            "name": "E",
+            "type": 21
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 55,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 56
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 13
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 56
+          },
+          {
+            "name": "E",
+            "type": 13
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "type": {
+        "def": {
+          "sequence": {
+            "type": 57
+          }
+        }
+      }
+    },
+    {
+      "id": 57,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "name": "id",
+                "type": 5,
+                "typeName": "NftId"
+              },
+              {
+                "name": "price",
+                "type": 7,
+                "typeName": "Balance"
+              }
+            ]
+          }
+        },
+        "path": [
+          "nft_trader",
+          "nft_trader",
+          "NftPrice"
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "type": {
+        "def": {
+          "composite": {
+            "fields": [
+              {
+                "type": 1,
+                "typeName": "[u8; 32]"
+              }
+            ]
+          }
+        },
+        "path": [
+          "ink_primitives",
+          "types",
+          "Hash"
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "type": {
+        "def": {
+          "variant": {}
+        },
+        "path": [
+          "ink_env",
+          "types",
+          "NoChainExtension"
+        ]
+      }
+    }
+  ],
+  "version": "4"
+}
