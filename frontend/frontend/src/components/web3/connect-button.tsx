@@ -17,7 +17,6 @@ import {
   useInkathon,
 } from '@scio-labs/use-inkathon'
 import { AlertOctagon } from 'lucide-react'
-import aznsIconSvg from 'public/icons/azns-icon.svg'
 import toast from 'react-hot-toast'
 import { AiOutlineCheckCircle, AiOutlineDisconnect } from 'react-icons/ai'
 import { FiChevronDown, FiExternalLink } from 'react-icons/fi'
@@ -234,7 +233,6 @@ export const AccountName: FC<AccountNameProps> = ({ account, ...rest }) => {
   return (
     <div className="flex items-center gap-2 font-mono text-sm font-bold uppercase" {...rest}>
       {primaryDomain || account.name}
-      {!!primaryDomain && <Image src={aznsIconSvg} alt="AZERO.ID Logo" width={13} height={13} />}
     </div>
   )
 }
