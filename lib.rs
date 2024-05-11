@@ -122,7 +122,7 @@ mod nft_trader {
   pub struct NFTSold {
     #[ink(topic)]
     portfolio: PortfolioId,
-    nft: NftId,
+    id: NftId,
     amount: Balance,
   }
 
@@ -130,7 +130,7 @@ mod nft_trader {
   #[derive(Debug, scale::Encode, scale::Decode, PartialEq, Eq)]
   #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, StorageLayout))]
   pub struct NftPrice {
-    nft: NftId,
+    id: NftId,
     price: Balance,
   }
 
@@ -489,7 +489,7 @@ mod nft_trader {
 
       Self::env().emit_event(NFTSold {
         portfolio: caller_portfolio,
-        nft,
+        id: nft,
         amount,
       });
 
@@ -557,7 +557,7 @@ mod nft_trader {
       for nft in &self.nfts {
         if let Some(sale) = self.nft_sales.get(nft) {
           available.push(NftPrice {
-            nft: *nft, price: sale.price
+            id: *nft, price: sale.price
           });
         }
       }
